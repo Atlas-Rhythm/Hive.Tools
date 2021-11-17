@@ -7,7 +7,7 @@
     <!-- This is needed sometimes when packing single projects -->
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
 
-    <HiveToolsDirectory>$(MSBuildThisFileDirectory)\</HiveToolsDirectory>
+    <HiveToolsDirectory>$(MSBuildThisFileDirectory)</HiveToolsDirectory>
     <HiveRootDirectory>$(HiveToolsDirectory)..\</HiveRootDirectory>
     <HiveSourceDirectory>$(HiveRootDirectory)src\</HiveSourceDirectory>
 
