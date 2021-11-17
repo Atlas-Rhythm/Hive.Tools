@@ -11,6 +11,10 @@
     <HiveRootDirectory>$(HiveToolsDirectory)..\</HiveRootDirectory>
     <HiveSourceDirectory>$(HiveRootDirectory)src\</HiveSourceDirectory>
 
+    <!-- Make sure we aren't incompatible with the Hive SDK -->
+    <ImportHiveDefaultTargets>false</ImportHiveDefaultTargets>
+    <UseHiveSharedProperties>false</UseHiveSharedProperties>
+
     <RoslynVersion>4.0.0</RoslynVersion>
     <MSBuildRequiredVersion>17.0.0</MSBuildRequiredVersion>
   </PropertyGroup>
