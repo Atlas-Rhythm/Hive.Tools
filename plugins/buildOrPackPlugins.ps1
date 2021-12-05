@@ -31,7 +31,7 @@ foreach ($proj in $libProjects) {
     dotnet build -clp:NoSummary --no-restore --nologo "$proj" -p:Configuration=$Configuration @args
     $dirs = Get-ChildItem -Path "$artifactBase/$Configuration/".Trim() -Force
     foreach ($dir in $dirs) {
-        Compress-Archive -Path "$dir/*" -DestinationPath "$artifactZips/$projName.$($dir.Name).zip" -CompressionLevel Optimal
+        Compress-Archive -Path "$dir/*" -DestinationPath "$artifactZips/$projName.$($dir.Name).zip" -CompressionLevel Optimal -Force
     }
 }
 
@@ -48,6 +48,6 @@ foreach ($proj in $exeProjects) {
     foreach ($rid in $publishRids) {
         $dir = "$publishDir/$rid"
         dotnet publish -clp:NoSummary --nologo "$proj" -p:Configuration=$Configuration -r $rid "-p:PublishProfileFullPath=$PSScriptRoot/publishProfile.pubxml" @args -o $dir
-        Compress-Archive -Path "$dir/*" -DestinationPath "$artifactZips/$projName.$rid.zip" -CompressionLevel Optimal
+        Compress-Archive -Path "$dir/*" -DestinationPath "$artifactZips/$projName.$rid.zip" -CompressionLevel Optimal -Force
     }
 }
