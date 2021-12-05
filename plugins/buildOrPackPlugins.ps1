@@ -22,7 +22,7 @@ foreach ($proj in $projects) {
 dotnet restore -p:Configuration=$Configuration @args
 
 $artifactZips = "artifacts/zips"
-mkdir $artifactZips -Force
+New-Item $artifactZips -ItemType dir -Force
 
 # Build libraries
 foreach ($proj in $libProjects) {
@@ -36,7 +36,7 @@ foreach ($proj in $libProjects) {
 }
 
 $artifactPublishOut = "artifacts/publish"
-mkdir $artifactPublishOut -Force
+New-Item $artifactPublishOut -ItemType dir -Force
 
 $publishRids = "win-x64","linux-x64","osx-x64"
 
