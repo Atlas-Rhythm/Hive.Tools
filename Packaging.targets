@@ -231,7 +231,7 @@
       <FileWrites Include="$(_ILRCmdPs1)" />
     </ItemGroup>
 
-    <Exec ConsoleToMsBuild="true" Command="powershell -NoProfile &quot;$(_ILRCmdPs1)&quot;" />
+    <Exec ConsoleToMsBuild="true" Command="powershell -NoProfile -ExecutionPolicy Bypass &quot;$(_ILRCmdPs1)&quot;" />
   </Target>
   
   <Target Name="DoInvoke_ILRCmdNotWin" Condition="'$(OS)' != 'Windows_NT'">
