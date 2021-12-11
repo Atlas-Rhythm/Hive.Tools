@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- TODO: make dotnet packs with this output packages without references -->
@@ -80,15 +80,14 @@
 
   </Target>
 
-  <PropertyGroup>
-    <ILLinkOutputDir>$(IntermediateOutputPath)illink\</ILLinkOutputDir>
-  </PropertyGroup>
-
-
   <Target Name="ILLinkLib"
           AfterTargets="CoreCompile"
           BeforeTargets="ILRepacker"
           DependsOnTargets="ComputeILLinkProps">
+
+    <PropertyGroup>
+      <ILLinkOutputDir Condition="'$(ILLinkOutputDir)' == ''">$(IntermediateOutputPath)illink\</ILLinkOutputDir>
+    </PropertyGroup>
     
     <ItemGroup>
       <_LinkInputAssemblies Include="@(IntermediateAssembly)" />
@@ -141,11 +140,6 @@
 
   </Target>
 
-  <PropertyGroup>
-    <ILRepackOutputDir>$(IntermediateOutputPath)ilrepack\</ILRepackOutputDir>
-    <ILRepackOutput>$(ILRepackOutputDir)$(AssemblyName)$(TargetExt)</ILRepackOutput>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="ILRepack" Version="2.*">
       <PrivateAssets>all</PrivateAssets>
@@ -156,6 +150,12 @@
   <Target Name="ILRepacker"
           AfterTargets="ILLinkLib;CoreCompile"
           Condition="'$(SkipILRepack)' != 'true'">
+      
+    <PropertyGroup>
+      <ILRepackOutputDir Condition="'$(ILRepackOutputDir)' == ''">$(IntermediateOutputPath)ilrepack\</ILRepackOutputDir>
+      <ILRepackOutput Condition="'$(ILRepackOutput)' == ''">$(ILRepackOutputDir)$(AssemblyName)$(TargetExt)</ILRepackOutput>
+    </PropertyGroup>
+      
     <!--Inputs="$(MSBuildAllProjects);@(_LinkOutputAssemblies)"
     Outputs="$(ILRepackOutput)"-->
 
@@ -187,7 +187,7 @@
     <Message Importance="low" Text="referencedirs @(_ReferenceDirs)" />
 
     <ItemGroup>
-      <_ILRCmdArg Include="-lib:%(_ReferenceDirs.Identity)" Condition="'$(OS)' != 'Windows_NT'" />
+      <_ILRCmdArg Include="-lib:%(_ReferenceDirs.Identity)" />
       <_ILRCmdArg Include="-union" />
       <_ILRCmdArg Include="-xmldocs" />
       <_ILRCmdArg Include="-internalize:$(IntermediateOutputPath)ilrepack.exclusions" />
@@ -198,8 +198,12 @@
 
     <!-- This behaves just fine if the machine is a Linux and has Mono installed, with binfmt configured -->
     <!-- TODO: Make this work without needing Mono/binfmt -->
-    <Exec ConsoleToMsBuild="true"
-          Command="$(ILRepack) @(_ILRCmdArg->'&quot;%(Identity)&quot;', ' ')" />
+    <PropertyGroup>
+      <_ILRCmd>&quot;$(ILRepack)&quot; @(_ILRCmdArg->'%27%(Identity)%27', ' ')</_ILRCmd>
+    </PropertyGroup>
+
+    <Message Importance="high" Text="Invoking $(_ILRCmd)" />
+    <MSBuild Projects="$(MSBuildProjectFile)" Targets="DoInvoke_ILRCmd" Properties="_ILRCmd=$(_ILRCmd)" />
 
     <ItemGroup>
       <IntermediateAssembly Remove="@(IntermediateAssembly)" />
@@ -212,6 +216,31 @@
     </ItemGroup>
 
   </Target>
+
+  <Target Name="DoInvoke_ILRCmdWin" Condition="'$(OS)' == 'Windows_NT'">
+    <Message Importance="high" Text="DoInvoke_ILRCmd Windows" />
+    <Message Importance="high" Text="DoInvoke_ILRCmd $(_ILRCmd)" />
+    <!-- On Windows, the simple Exec *doesn't* work, because that would be useful. -->
+    <!-- Instead, we write to an intermediate Powershell file, and run that. -->
+    <PropertyGroup>
+      <_ILRCmdPs1>$(IntermediateOutputPath)ilrepack.ps1</_ILRCmdPs1>
+    </PropertyGroup>
+    
+    <WriteLinesToFile File="$(_ILRCmdPs1)" Encoding="UTF-8" Lines="&amp; $([System.String]::Copy('$(_ILRCmd)').Replace('\','\\'))" Overwrite="true" />
+    <ItemGroup>
+      <FileWrites Include="$(_ILRCmdPs1)" />
+    </ItemGroup>
+
+    <Exec ConsoleToMsBuild="true" Command="powershell -NoProfile &quot;$(_ILRCmdPs1)&quot;" />
+  </Target>
+  
+  <Target Name="DoInvoke_ILRCmdNotWin" Condition="'$(OS)' != 'Windows_NT'">
+    <Message Importance="high" Text="DoInvoke_ILRCmd NotWindows" />
+    <!-- On Windows platforms, just calling Exec is fine -->
+    <Exec ConsoleToMsBuild="true" Command="$(_ILRCmd)" />
+  </Target>
+
+  <Target Name="DoInvoke_ILRCmd" DependsOnTargets="DoInvoke_ILRCmdWin;DoInvoke_ILRCmdNotWin" />
 
   <!-- This target is used only when we want to skip the ILRepack step for whatever reason -->
   <Target Name="LinkedMove" AfterTargets="ILLinkLib" Condition="'$(SkipILRepack)' == 'true'">
