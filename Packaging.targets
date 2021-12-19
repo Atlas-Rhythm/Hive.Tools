@@ -202,7 +202,6 @@
       <_ILRCmd>&quot;$(ILRepack)&quot; @(_ILRCmdArg->'%27%(Identity)%27', ' ')</_ILRCmd>
     </PropertyGroup>
 
-    <Message Importance="high" Text="Invoking $(_ILRCmd)" />
     <MSBuild Projects="$(MSBuildProjectFile)" Targets="DoInvoke_ILRCmd" Properties="_ILRCmd=$(_ILRCmd)" />
 
     <ItemGroup>
@@ -218,8 +217,6 @@
   </Target>
 
   <Target Name="DoInvoke_ILRCmdWin" Condition="'$(OS)' == 'Windows_NT'">
-    <Message Importance="high" Text="DoInvoke_ILRCmd Windows" />
-    <Message Importance="high" Text="DoInvoke_ILRCmd $(_ILRCmd)" />
     <!-- On Windows, the simple Exec *doesn't* work, because that would be useful. -->
     <!-- Instead, we write to an intermediate Powershell file, and run that. -->
     <PropertyGroup>
@@ -235,7 +232,6 @@
   </Target>
   
   <Target Name="DoInvoke_ILRCmdNotWin" Condition="'$(OS)' != 'Windows_NT'">
-    <Message Importance="high" Text="DoInvoke_ILRCmd NotWindows" />
     <!-- On Windows platforms, just calling Exec is fine -->
     <Exec ConsoleToMsBuild="true" Command="$(_ILRCmd)" />
   </Target>
